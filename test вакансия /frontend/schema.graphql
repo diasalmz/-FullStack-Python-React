@@ -1,0 +1,204 @@
+type Query {
+  node(id: ID!): Node
+  allClients: ClientConnection
+  client(id: Int): Client
+  allSuppliers: SupplierConnection
+  supplier(id: Int): Supplier
+  allInvoices: InvoiceConnection
+  invoice(id: Int): Invoice
+  allTransactions: TransactionConnection
+  transaction(id: Int): Transaction
+  allDebts: DebtConnection
+  clientDebts(clientId: Int): [Debt]
+  supplierDebts(supplierId: Int): [Debt]
+}
+
+type Mutation {
+  createClient(input: CreateClientInput!): CreateClientPayload
+  createSupplier(input: CreateSupplierInput!): CreateSupplierPayload
+  createInvoice(input: CreateInvoiceInput!): CreateInvoicePayload
+}
+
+interface Node {
+  id: ID!
+}
+
+type Client implements Node {
+  id: ID!
+  name: String!
+  markupPercentage: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  invoices(before: String, after: String, first: Int, last: Int): InvoiceConnection
+  debts(before: String, after: String, first: Int, last: Int): DebtConnection
+}
+
+type ClientConnection {
+  pageInfo: PageInfo!
+  edges: [ClientEdge]!
+}
+
+type ClientEdge {
+  node: Client
+  cursor: String!
+}
+
+type Supplier implements Node {
+  id: ID!
+  name: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  invoices(before: String, after: String, first: Int, last: Int): InvoiceConnection
+  debts(before: String, after: String, first: Int, last: Int): DebtConnection
+}
+
+type SupplierConnection {
+  pageInfo: PageInfo!
+  edges: [SupplierEdge]!
+}
+
+type SupplierEdge {
+  node: Supplier
+  cursor: String!
+}
+
+type Invoice implements Node {
+  id: ID!
+  invoiceNumber: String!
+  date: Date!
+  totalAmount: Float!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  client: Client!
+  supplier: Supplier!
+  transactions(before: String, after: String, first: Int, last: Int): TransactionConnection
+  debts(before: String, after: String, first: Int, last: Int): DebtConnection
+  items(before: String, after: String, first: Int, last: Int): InvoiceItemConnection
+  totalWithMarkup: Float!
+  markupAmount: Float!
+}
+
+type InvoiceConnection {
+  pageInfo: PageInfo!
+  edges: [InvoiceEdge]!
+}
+
+type InvoiceEdge {
+  node: Invoice
+  cursor: String!
+}
+
+type InvoiceItem implements Node {
+  id: ID!
+  materialName: String!
+  quantity: Float!
+  unitPrice: Float!
+  unit: String!
+  invoice: Invoice!
+  totalPrice: Float!
+}
+
+type InvoiceItemConnection {
+  pageInfo: PageInfo!
+  edges: [InvoiceItemEdge]!
+}
+
+type InvoiceItemEdge {
+  node: InvoiceItem
+  cursor: String!
+}
+
+type Transaction implements Node {
+  id: ID!
+  transactionType: String!
+  amount: Float!
+  description: String
+  date: Date!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  invoice: Invoice!
+}
+
+type TransactionConnection {
+  pageInfo: PageInfo!
+  edges: [TransactionEdge]!
+}
+
+type TransactionEdge {
+  node: Transaction
+  cursor: String!
+}
+
+type Debt implements Node {
+  id: ID!
+  amount: Float!
+  debtType: String!
+  isPaid: Boolean!
+  dueDate: Date
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  invoice: Invoice!
+  client: Client
+  supplier: Supplier
+}
+
+type DebtConnection {
+  pageInfo: PageInfo!
+  edges: [DebtEdge]!
+}
+
+type DebtEdge {
+  node: Debt
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+input CreateClientInput {
+  name: String!
+  markupPercentage: Float!
+}
+
+type CreateClientPayload {
+  client: Client
+}
+
+input CreateSupplierInput {
+  name: String!
+}
+
+type CreateSupplierPayload {
+  supplier: Supplier
+}
+
+input InvoiceItemInput {
+  materialName: String!
+  quantity: Float!
+  unitPrice: Float!
+  unit: String!
+}
+
+input CreateInvoiceInput {
+  invoiceNumber: String!
+  date: Date!
+  description: String
+  clientId: Int!
+  supplierId: Int!
+  items: [InvoiceItemInput!]!
+}
+
+type CreateInvoicePayload {
+  invoice: Invoice
+  transaction: Transaction
+  clientDebt: Debt
+  supplierDebt: Debt
+}
+
+scalar Date
+scalar DateTime 
